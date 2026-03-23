@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jumila Admin - Panel de Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pink:      #e91e8c;
+            --pink-dark: #b5166d;
+            --pink-pale: #fde8f3;
+            --gris:      #f7f7f7;
+            --texto:     #222;
+            --borde:     #e5e5e5;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Nunito', sans-serif; background: var(--gris); color: var(--texto); }
+
+        /* LOGIN */
+        #pantalla-login { min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,var(--pink-dark),var(--pink),#ff6eb4); }
+        .login-box { background:white; border-radius:24px; padding:48px 40px; width:100%; max-width:400px; text-align:center; box-shadow:0 24px 60px rgba(0,0,0,0.15); }
+        .login-logo { font-size:22px; font-weight:800; color:var(--pink); margin-bottom:6px; }
+        .login-sub  { font-size:14px; color:#aaa; margin-bottom:36px; }
+        .login-box label { display:block; text-align:left; font-size:13px; font-weight:700; color:#555; margin-bottom:8px; }
+        .login-box input { width:100%; padding:13px 16px; border:2px solid var(--borde); border-radius:12px; font-size:15px; font-family:'Nunito',sans-serif; outline:none; margin-bottom:20px; transition:border-color 0.2s; letter-spacing:3px; text-align:center; }
+        .login-box input:focus { border-color:var(--pink); }
+        .btn-login { width:100%; background:var(--pink); color:white; border:none; padding:14px; border-radius:12px; font-size:16px; font-weight:800; cursor:pointer; font-family:'Nunito',sans-serif; transition:all 0.2s; }
+        .btn-login:hover { background:var(--pink-dark); transform:translateY(-2px); }
+        .login-error { display:none; background:#fff0f0; color:#c0392b; padding:10px 16px; border-radius:10px; font-size:13px; font-weight:700; margin-top:14px; }
+        .login-hint { font-size:12px; color:#ccc; margin-top:20px; }
+
+        /* PANEL */
+        #pantalla-admin { display:none; }
+        .app { display:grid; grid-template-columns:240px 1fr; min-height:100vh; }
+
+        /* SIDEBAR */
+        .sidebar { background:var(--pink-dark); padding:24px 16px; position:sticky; top:0; height:100vh; display:flex; flex-direction:column; }
+        .sidebar-logo { color:white; font-size:18px; font-weight:800; }
+        .sidebar-logo span { font-size:12px; opacity:0.65; font-weight:400; display:block; margin-top:2px; }
+        .sidebar-div { border:none; border-top:1px solid rgba(255,255,255,0.15); margin:16px 0; }
+        .nav-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; color:rgba(255,255,255,0.7); font-size:14px; font-weight:600; cursor:pointer; margin-bottom:4px; transition:all 0.2s; text-decoration:none; }
+        .nav-item.activo { background:rgba(255,255,255,0.2); color:white; }
+        .nav-item:hover:not(.activo) { background:rgba(255,255,255,0.1); color:white; }
+        .sidebar-bottom { margin-top:auto; display:flex; flex-direction:column; gap:8px; }
+        .btn-sidebar { display:block; text-align:center; padding:10px; border-radius:10px; font-size:13px; font-weight:700; text-decoration:none; transition:background 0.2s; border:none; cursor:pointer; font-family:'Nunito',sans-serif; width:100%; }
+        .btn-tienda { background:rgba(255,255,255,0.15); color:white; }
+        .btn-tienda:hover { background:rgba(255,255,255,0.25); }
+        .btn-salir { background:rgba(0,0,0,0.2); color:rgba(255,255,255,0.7); }
+        .btn-salir:hover { background:rgba(0,0,0,0.35); color:white; }
+
+        /* CONTENIDO */
+        .main { padding:30px; overflow-y:auto; }
+        .seccion-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+        .seccion-header h1 { font-size:24px; font-weight:800; }
+
+        /* STATS */
+        .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px; }
+        .stat-card { background:white; border-radius:14px; padding:20px; border:1px solid var(--borde); }
+        .stat-label { font-size:13px; color:#888; margin-bottom:8px; }
+        .stat-numero { font-size:28px; font-weight:800; color:var(--pink); }
+        .stat-sub { font-size:12px; color:#aaa; margin-top:4px; }
+
+        /* BOTONES */
+        .btn-agregar { background:var(--pink); color:white; border:none; padding:12px 22px; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:'Nunito',sans-serif; transition:all 0.2s; }
+        .btn-agregar:hover { background:var(--pink-dark); transform:translateY(-1px); }
+        .btn-editar { background:#f0f0f0; color:var(--texto); border:none; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; font-family:'Nunito',sans-serif; }
+        .btn-editar:hover { background:#e0e0e0; }
+        .btn-borrar { background:#fff0f0; color:#c0392b; border:none; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; font-family:'Nunito',sans-serif; }
+        .btn-borrar:hover { background:#ffd5d5; }
+
+        /* TABLA */
+        .tabla-wrap { background:white; border-radius:16px; border:1px solid var(--borde); overflow:hidden; }
+        .tabla-header-row { display:grid; grid-template-columns:70px 1fr 150px 100px 80px 110px; gap:12px; padding:14px 20px; background:var(--gris); border-bottom:1px solid var(--borde); }
+        .th { font-size:11px; font-weight:800; color:#999; text-transform:uppercase; letter-spacing:0.8px; }
+        .producto-row { display:grid; grid-template-columns:70px 1fr 150px 100px 80px 110px; gap:12px; padding:14px 20px; border-bottom:1px solid var(--borde); align-items:center; transition:background 0.15s; }
+        .producto-row:last-child { border-bottom:none; }
+        .producto-row:hover { background:#fafafa; }
+        .prod-thumb { width:50px; height:50px; border-radius:10px; background:var(--pink-pale); display:flex; align-items:center; justify-content:center; font-size:22px; overflow:hidden; flex-shrink:0; }
+        .prod-thumb img { width:100%; height:100%; object-fit:cover; }
+        .prod-nombre { font-size:14px; font-weight:700; }
+        .prod-badge { display:inline-block; font-size:10px; font-weight:800; padding:2px 8px; border-radius:20px; margin-top:3px; }
+        .badge-nuevo   { background:#dbeafe; color:#1e40af; }
+        .badge-oferta  { background:var(--pink-pale); color:var(--pink-dark); }
+        .badge-popular { background:#fef3c7; color:#92400e; }
+        .badge-ninguno { display:none; }
+        .prod-cat    { font-size:13px; color:#666; }
+        .prod-precio { font-size:15px; font-weight:800; color:var(--pink); }
+        .prod-stock  { font-size:13px; color:#666; }
+        .acciones    { display:flex; gap:6px; }
+
+        /* UPLOAD */
+        .upload-zona { border:2px dashed var(--borde); border-radius:14px; padding:24px; text-align:center; cursor:pointer; transition:all 0.2s; margin-bottom:16px; position:relative; background:#fafafa; }
+        .upload-zona:hover { border-color:var(--pink); background:var(--pink-pale); }
+        .upload-zona.con-imagen { border-style:solid; border-color:var(--pink); padding:10px; background:white; }
+        .upload-zona input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+        .upload-placeholder { pointer-events:none; }
+        .upload-icono { font-size:36px; margin-bottom:8px; }
+        .upload-texto { font-size:14px; font-weight:700; color:#888; margin-bottom:4px; }
+        .upload-subtexto { font-size:12px; color:#aaa; }
+        .upload-preview { display:none; position:relative; }
+        .upload-preview img { width:100%; max-height:200px; object-fit:contain; border-radius:10px; }
+        .btn-quitar-img { position:absolute; top:-8px; right:-8px; background:#c0392b; color:white; border:none; width:26px; height:26px; border-radius:50%; font-size:16px; cursor:pointer; font-weight:800; display:flex; align-items:center; justify-content:center; }
+
+        /* MODAL */
+        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center; padding:20px; }
+        .modal-overlay.visible { display:flex; }
+        .modal { background:white; border-radius:20px; padding:30px; width:100%; max-width:560px; max-height:92vh; overflow-y:auto; }
+        .modal-titulo { font-size:20px; font-weight:800; margin-bottom:24px; color:var(--pink); }
+        .form-grupo { margin-bottom:16px; }
+        .form-grupo label { display:block; font-size:13px; font-weight:700; color:#555; margin-bottom:6px; }
+        .form-grupo input, .form-grupo select, .form-grupo textarea { width:100%; padding:11px 14px; border:2px solid var(--borde); border-radius:10px; font-size:14px; font-family:'Nunito',sans-serif; outline:none; transition:border-color 0.2s; color:var(--texto); background:white; }
+        .form-grupo input:focus, .form-grupo select:focus, .form-grupo textarea:focus { border-color:var(--pink); }
+        .form-grupo textarea { resize:vertical; min-height:80px; }
+        .form-fila { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .form-acciones { display:flex; gap:12px; margin-top:24px; }
+        .btn-cancelar { flex:1; background:#f0f0f0; color:var(--texto); border:none; padding:13px; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:'Nunito',sans-serif; }
+        .btn-guardar  { flex:2; background:var(--pink); color:white; border:none; padding:13px; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:'Nunito',sans-serif; transition:background 0.2s; }
+        .btn-guardar:hover { background:var(--pink-dark); }
+
+        .vacio { text-align:center; padding:60px 20px; color:#aaa; }
+        .vacio-icon { font-size:48px; margin-bottom:12px; }
+        .vacio p { font-size:15px; }
+
+        .notif { position:fixed; bottom:30px; right:30px; background:#27ae60; color:white; padding:14px 22px; border-radius:12px; font-size:14px; font-weight:700; box-shadow:0 6px 20px rgba(0,0,0,0.15); transform:translateY(80px); opacity:0; transition:all 0.3s; z-index:9999; }
+        .notif.visible { transform:translateY(0); opacity:1; }
+
+        .cambiar-pass { background:white; border-radius:16px; border:1px solid var(--borde); padding:24px; margin-top:28px; }
+        .cambiar-pass h3 { font-size:16px; font-weight:800; margin-bottom:16px; }
+        .pass-fila { display:grid; grid-template-columns:1fr 1fr auto; gap:12px; align-items:end; }
+
+        @media (max-width:768px) {
+            .app { grid-template-columns:1fr; }
+            .sidebar { height:auto; position:relative; }
+            .stats-grid { grid-template-columns:repeat(2,1fr); }
+            .tabla-header-row, .producto-row { grid-template-columns:50px 1fr 80px 80px; }
+            .tabla-header-row>*:nth-child(5), .tabla-header-row>*:nth-child(6),
+            .producto-row>*:nth-child(5), .producto-row>*:nth-child(6) { display:none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ================================================
+     PANTALLA DE LOGIN
+     Contraseña por defecto: jumila2025
+     Cámbiala en Configuración
+================================================ -->
+<div id="pantalla-login">
+    <div class="login-box">
+        <div class="login-logo">🌸 Jumila Admin</div>
+        <div class="login-sub">Panel de control privado</div>
+        <label>Contraseña de acceso</label>
+        <input type="password" id="inp-password" placeholder="••••••••"
+               onkeydown="if(event.key==='Enter') verificarLogin()">
+        <button class="btn-login" onclick="verificarLogin()">🔐 Entrar al panel</button>
+        <div class="login-error" id="login-error">❌ Contraseña incorrecta. Intenta de nuevo.</div>
+        <div class="login-hint">Acceso exclusivo para el administrador</div>
+    </div>
+</div>
+
+<!-- ================================================
+     PANEL PRINCIPAL
+================================================ -->
+<div id="pantalla-admin">
+<div class="app">
+
+    <div class="sidebar">
+        <div class="sidebar-logo">Jumila Admin<span>Panel de control</span></div>
+        <hr class="sidebar-div">
+        <a class="nav-item activo" href="#" onclick="mostrarSeccion('productos',event)">📦 Productos</a>
+        <a class="nav-item"        href="#" onclick="mostrarSeccion('configuracion',event)">⚙️ Configuración</a>
+        <div class="sidebar-bottom">
+            <a href="../index.html" class="btn-sidebar btn-tienda">🌐 Ver mi tienda</a>
+            <button class="btn-sidebar btn-salir" onclick="cerrarSesion()">🚪 Cerrar sesión</button>
+        </div>
+    </div>
+
+    <div class="main">
+
+        <!-- SECCIÓN PRODUCTOS -->
+        <div id="sec-productos">
+            <div class="seccion-header">
+                <h1>Mis Productos</h1>
+                <button class="btn-agregar" onclick="abrirModal()">+ Agregar Producto</button>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-label">Total productos</div><div class="stat-numero" id="stat-total">0</div><div class="stat-sub">en tu catálogo</div></div>
+                <div class="stat-card"><div class="stat-label">En oferta</div><div class="stat-numero" id="stat-ofertas">0</div><div class="stat-sub">con badge OFERTA</div></div>
+                <div class="stat-card"><div class="stat-label">Stock total</div><div class="stat-numero" id="stat-stock">0</div><div class="stat-sub">unidades</div></div>
+                <div class="stat-card"><div class="stat-label">Con foto</div><div class="stat-numero" id="stat-fotos">0</div><div class="stat-sub">tienen imagen</div></div>
+            </div>
+            <div class="tabla-wrap">
+                <div class="tabla-header-row">
+                    <div class="th">Foto</div><div class="th">Nombre</div><div class="th">Categoría</div>
+                    <div class="th">Precio</div><div class="th">Stock</div><div class="th">Acciones</div>
+                </div>
+                <div id="lista-productos">
+                    <div class="vacio"><div class="vacio-icon">📦</div><p>Aún no tienes productos.<br>¡Agrega tu primer producto!</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN CONFIGURACIÓN -->
+        <div id="sec-configuracion" style="display:none">
+            <div class="seccion-header"><h1>Configuración</h1></div>
+            <div class="cambiar-pass">
+                <h3>🔐 Cambiar contraseña del panel</h3>
+                <div class="pass-fila">
+                    <div class="form-grupo" style="margin:0">
+                        <label>Nueva contraseña</label>
+                        <input type="password" id="nueva-pass" placeholder="Mínimo 6 caracteres">
+                    </div>
+                    <div class="form-grupo" style="margin:0">
+                        <label>Confirmar contraseña</label>
+                        <input type="password" id="confirmar-pass" placeholder="Repite la contraseña">
+                    </div>
+                    <button class="btn-agregar" onclick="cambiarContrasena()" style="height:46px;margin-top:22px">Guardar</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
+
+<!-- ================================================
+     MODAL: FORMULARIO DE PRODUCTO
+================================================ -->
+<div class="modal-overlay" id="modal">
+    <div class="modal">
+        <div class="modal-titulo" id="modal-titulo">Agregar Producto</div>
+
+        <div class="form-grupo">
+            <label>📸 Foto del producto</label>
+            <div class="upload-zona" id="upload-zona">
+                <input type="file" id="inp-imagen" accept="image/*" onchange="previsualizarImagen(event)">
+                <div class="upload-placeholder" id="upload-placeholder">
+                    <div class="upload-icono">🖼️</div>
+                    <div class="upload-texto">Haz clic para subir una foto</div>
+                    <div class="upload-subtexto">JPG, PNG o WEBP · Máximo 5MB</div>
+                </div>
+                <div class="upload-preview" id="upload-preview">
+                    <img id="preview-img" src="" alt="Preview">
+                    <button class="btn-quitar-img" onclick="quitarImagen(event)">×</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-grupo">
+            <label>Nombre del producto *</label>
+            <input type="text" id="inp-nombre" placeholder="Ej: Parlante Bluetooth RGB">
+        </div>
+
+        <div class="form-grupo">
+            <label>Descripción</label>
+            <textarea id="inp-descripcion" placeholder="Características, tamaño, color..."></textarea>
+        </div>
+
+        <div class="form-fila">
+            <div class="form-grupo">
+                <label>Precio actual (S/) *</label>
+                <input type="number" id="inp-precio" placeholder="45" min="0">
+            </div>
+            <div class="form-grupo">
+                <label>Precio anterior (S/) — tachado</label>
+                <input type="number" id="inp-precio-anterior" placeholder="70" min="0">
+            </div>
+        </div>
+
+        <div class="form-fila">
+            <div class="form-grupo">
+                <label>Categoría *</label>
+                <select id="inp-categoria">
+                    <option value="accesorios">👜 Accesorios</option>
+                    <option value="tecnologia">📱 Tecnología</option>
+                    <option value="electrohogar">🔌 Electrohogar</option>
+                    <option value="dormitorio">🛏️ Dormitorio y Baño</option>
+                    <option value="cocina">🍳 Cocina</option>
+                    <option value="decoracion">🪴 Decoración</option>
+                    <option value="iluminacion">💡 Iluminación</option>
+                    <option value="ofertas">🔥 Ofertas</option>
+                </select>
+            </div>
+            <div class="form-grupo">
+                <label>Stock (unidades)</label>
+                <input type="number" id="inp-stock" placeholder="10" min="0">
+            </div>
+        </div>
+
+        <div class="form-fila">
+            <div class="form-grupo">
+                <label>Badge (etiqueta)</label>
+                <select id="inp-badge">
+                    <option value="ninguno">Sin badge</option>
+                    <option value="nuevo">🔵 NUEVO</option>
+                    <option value="oferta">🌸 OFERTA</option>
+                    <option value="popular">🟡 POPULAR</option>
+                </select>
+            </div>
+            <div class="form-grupo">
+                <label>Emoji (si no hay foto)</label>
+                <input type="text" id="inp-emoji" placeholder="📦" maxlength="2">
+            </div>
+        </div>
+
+        <div class="form-acciones">
+            <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+            <button class="btn-guardar"  onclick="guardarProducto()">💾 Guardar Producto</button>
+        </div>
+    </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+// ================================================
+// JUMILA ADMIN
+// Archivo independiente — no necesita productos.js
+// ================================================
+
+const PASS_DEFAULT = 'jumila2025';   // <- contraseña por defecto
+const PASS_KEY     = 'jumila-admin-pass';
+const PROD_KEY     = 'jumila-productos';
+
+// --- Leer y guardar contraseña ---
+function obtenerPassword() {
+    return localStorage.getItem(PASS_KEY) || PASS_DEFAULT;
+}
+
+// --- Leer y guardar productos ---
+function obtenerProductos() {
+    try { return JSON.parse(localStorage.getItem(PROD_KEY) || '[]'); }
+    catch(e) { return []; }
+}
+function guardarProductos(lista) {
+    localStorage.setItem(PROD_KEY, JSON.stringify(lista));
+}
+
+// Nombres de categorías para mostrar en la tabla
+const catTexto = {
+    accesorios:'👜 Accesorios', tecnologia:'📱 Tecnología',
+    electrohogar:'🔌 Electrohogar', dormitorio:'🛏️ Dormitorio y Baño',
+    cocina:'🍳 Cocina', decoracion:'🪴 Decoración',
+    iluminacion:'💡 Iluminación', ofertas:'🔥 Ofertas'
+};
+
+// ================================
+// LOGIN
+// ================================
+function verificarLogin() {
+    const pass = document.getElementById('inp-password').value;
+    if (pass === obtenerPassword()) {
+        sessionStorage.setItem('jumila-admin-ok', '1');
+        document.getElementById('pantalla-login').style.display = 'none';
+        document.getElementById('pantalla-admin').style.display = 'block';
+        renderizar();
+    } else {
+        document.getElementById('login-error').style.display = 'block';
+        document.getElementById('inp-password').value = '';
+        document.getElementById('inp-password').focus();
+    }
+}
+
+function cerrarSesion() {
+    sessionStorage.removeItem('jumila-admin-ok');
+    document.getElementById('pantalla-login').style.display = 'flex';
+    document.getElementById('pantalla-admin').style.display = 'none';
+    document.getElementById('inp-password').value = '';
+}
+
+function cambiarContrasena() {
+    const nueva     = document.getElementById('nueva-pass').value.trim();
+    const confirmar = document.getElementById('confirmar-pass').value.trim();
+    if (!nueva)              { notif('⚠️ Escribe una contraseña','error'); return; }
+    if (nueva !== confirmar) { notif('⚠️ Las contraseñas no coinciden','error'); return; }
+    if (nueva.length < 6)    { notif('⚠️ Mínimo 6 caracteres','error'); return; }
+    localStorage.setItem(PASS_KEY, nueva);
+    document.getElementById('nueva-pass').value     = '';
+    document.getElementById('confirmar-pass').value = '';
+    notif('✅ Contraseña actualizada');
+}
+
+// Sesión activa — mostrar panel directamente
+if (sessionStorage.getItem('jumila-admin-ok') === '1') {
+    document.getElementById('pantalla-login').style.display = 'none';
+    document.getElementById('pantalla-admin').style.display = 'block';
+}
+
+// ================================
+// NAVEGACIÓN
+// ================================
+function mostrarSeccion(nombre, e) {
+    if (e) e.preventDefault();
+    document.getElementById('sec-productos').style.display     = nombre === 'productos'     ? 'block' : 'none';
+    document.getElementById('sec-configuracion').style.display = nombre === 'configuracion' ? 'block' : 'none';
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('activo'));
+    if (e && e.currentTarget) e.currentTarget.classList.add('activo');
+    if (nombre === 'productos') renderizar();
+}
+
+// ================================
+// RENDERIZAR TABLA
+// ================================
+function renderizar() {
+    const prods = obtenerProductos();
+    const lista = document.getElementById('lista-productos');
+
+    if (prods.length === 0) {
+        lista.innerHTML = `<div class="vacio"><div class="vacio-icon">📦</div><p>Aún no tienes productos.<br>¡Agrega tu primer producto!</p></div>`;
+        actualizarStats(prods);
+        return;
+    }
+
+    lista.innerHTML = prods.map(function(p) {
+        const thumb = p.imagen
+            ? `<div class="prod-thumb"><img src="${p.imagen}" alt="${p.nombre}"></div>`
+            : `<div class="prod-thumb">${p.emoji || '📦'}</div>`;
+        const precAnt = p.precioAnterior
+            ? `<span style="font-size:11px;color:#aaa;text-decoration:line-through;margin-left:5px">S/ ${p.precioAnterior}</span>` : '';
+        const bc = {nuevo:'badge-nuevo',oferta:'badge-oferta',popular:'badge-popular',ninguno:'badge-ninguno'}[p.badge]||'badge-ninguno';
+        const bt = {nuevo:'NUEVO',oferta:'OFERTA',popular:'POPULAR',ninguno:''}[p.badge]||'';
+        return `
+        <div class="producto-row">
+            ${thumb}
+            <div><div class="prod-nombre">${p.nombre}</div><span class="prod-badge ${bc}">${bt}</span></div>
+            <div class="prod-cat">${catTexto[p.categoria]||p.categoria}</div>
+            <div class="prod-precio">S/ ${p.precio}${precAnt}</div>
+            <div class="prod-stock">${p.stock||0} und</div>
+            <div class="acciones">
+                <button class="btn-editar" onclick="editarProducto(${p.id})">Editar</button>
+                <button class="btn-borrar" onclick="borrarProducto(${p.id})">Borrar</button>
+            </div>
+        </div>`;
+    }).join('');
+
+    actualizarStats(prods);
+}
+
+function actualizarStats(prods) {
+    document.getElementById('stat-total').textContent   = prods.length;
+    document.getElementById('stat-ofertas').textContent = prods.filter(p=>p.badge==='oferta').length;
+    document.getElementById('stat-stock').textContent   = prods.reduce((s,p)=>s+(parseInt(p.stock)||0),0);
+    document.getElementById('stat-fotos').textContent   = prods.filter(p=>p.imagen).length;
+}
+
+// ================================
+// IMAGEN
+// ================================
+let imagenBase64 = null;
+
+function previsualizarImagen(event) {
+    const f = event.target.files[0];
+    if (!f) return;
+    if (f.size > 5*1024*1024) { notif('⚠️ Imagen muy grande. Máx 5MB','error'); return; }
+    const r = new FileReader();
+    r.onload = function(e) {
+        imagenBase64 = e.target.result;
+        document.getElementById('preview-img').src                  = imagenBase64;
+        document.getElementById('upload-placeholder').style.display = 'none';
+        document.getElementById('upload-preview').style.display     = 'block';
+        document.getElementById('upload-zona').classList.add('con-imagen');
+    };
+    r.readAsDataURL(f);
+}
+
+function quitarImagen(event) {
+    event.stopPropagation();
+    imagenBase64 = null;
+    document.getElementById('inp-imagen').value                 = '';
+    document.getElementById('preview-img').src                  = '';
+    document.getElementById('upload-placeholder').style.display = 'block';
+    document.getElementById('upload-preview').style.display     = 'none';
+    document.getElementById('upload-zona').classList.remove('con-imagen');
+}
+
+// ================================
+// MODAL FORMULARIO
+// ================================
+let editandoId = null;
+
+function resetearFormulario() {
+    imagenBase64 = null;
+    document.getElementById('inp-nombre').value                 = '';
+    document.getElementById('inp-descripcion').value            = '';
+    document.getElementById('inp-precio').value                 = '';
+    document.getElementById('inp-precio-anterior').value        = '';
+    document.getElementById('inp-categoria').value              = 'accesorios';
+    document.getElementById('inp-stock').value                  = '';
+    document.getElementById('inp-badge').value                  = 'ninguno';
+    document.getElementById('inp-emoji').value                  = '';
+    document.getElementById('inp-imagen').value                 = '';
+    document.getElementById('preview-img').src                  = '';
+    document.getElementById('upload-placeholder').style.display = 'block';
+    document.getElementById('upload-preview').style.display     = 'none';
+    document.getElementById('upload-zona').classList.remove('con-imagen');
+}
+
+function abrirModal() {
+    editandoId = null;
+    resetearFormulario();
+    document.getElementById('modal-titulo').textContent = 'Agregar Producto';
+    document.getElementById('modal').classList.add('visible');
+}
+
+function cerrarModal() {
+    document.getElementById('modal').classList.remove('visible');
+}
+
+function editarProducto(id) {
+    const p = obtenerProductos().find(x => x.id === id);
+    if (!p) return;
+    editandoId   = id;
+    imagenBase64 = p.imagen || null;
+
+    document.getElementById('modal-titulo').textContent         = 'Editar Producto';
+    document.getElementById('inp-nombre').value                 = p.nombre;
+    document.getElementById('inp-descripcion').value            = p.descripcion || '';
+    document.getElementById('inp-precio').value                 = p.precio;
+    document.getElementById('inp-precio-anterior').value        = p.precioAnterior || '';
+    document.getElementById('inp-categoria').value              = p.categoria;
+    document.getElementById('inp-stock').value                  = p.stock || '';
+    document.getElementById('inp-badge').value                  = p.badge || 'ninguno';
+    document.getElementById('inp-emoji').value                  = p.emoji || '';
+
+    if (p.imagen) {
+        document.getElementById('preview-img').src                  = p.imagen;
+        document.getElementById('upload-placeholder').style.display = 'none';
+        document.getElementById('upload-preview').style.display     = 'block';
+        document.getElementById('upload-zona').classList.add('con-imagen');
+    } else {
+        document.getElementById('upload-placeholder').style.display = 'block';
+        document.getElementById('upload-preview').style.display     = 'none';
+        document.getElementById('upload-zona').classList.remove('con-imagen');
+    }
+
+    document.getElementById('modal').classList.add('visible');
+}
+
+function guardarProducto() {
+    const nombre = document.getElementById('inp-nombre').value.trim();
+    const precio = document.getElementById('inp-precio').value.trim();
+    if (!nombre) { notif('⚠️ El nombre es obligatorio','error'); return; }
+    if (!precio)  { notif('⚠️ El precio es obligatorio','error');  return; }
+
+    const cat  = document.getElementById('inp-categoria').value;
+    const prod = {
+        nombre,
+        descripcion:    document.getElementById('inp-descripcion').value.trim(),
+        precio:         parseFloat(precio),
+        precioAnterior: parseFloat(document.getElementById('inp-precio-anterior').value) || null,
+        categoria:      cat,
+        stock:          parseInt(document.getElementById('inp-stock').value) || 0,
+        badge:          document.getElementById('inp-badge').value,
+        emoji:          document.getElementById('inp-emoji').value.trim() || '📦',
+        imagen:         imagenBase64
+    };
+
+    let lista = obtenerProductos();
+    if (editandoId !== null) {
+        const i = lista.findIndex(x => x.id === editandoId);
+        if (i !== -1) lista[i] = { ...prod, id: editandoId };
+        notif('✅ Producto actualizado. Ya se ve en tu tienda.');
+    } else {
+        prod.id = Date.now();
+        lista.push(prod);
+        notif('✅ Producto agregado. Ya se ve en tu tienda.');
+    }
+
+    guardarProductos(lista);
+    cerrarModal();
+    renderizar();
+}
+
+function borrarProducto(id) {
+    if (!confirm('¿Seguro que quieres borrar este producto?')) return;
+    guardarProductos(obtenerProductos().filter(p => p.id !== id));
+    renderizar();
+    notif('🗑️ Producto eliminado.');
+}
+
+// ================================
+// NOTIFICACIÓN
+// ================================
+function notif(texto, tipo) {
+    const n = document.getElementById('notif');
+    n.textContent      = texto;
+    n.style.background = tipo === 'error' ? '#c0392b' : '#27ae60';
+    n.classList.add('visible');
+    setTimeout(() => n.classList.remove('visible'), 3000);
+}
+
+// Cerrar modal al hacer clic fuera
+document.getElementById('modal').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModal();
+});
+
+// Iniciar tabla si ya hay sesión
+if (sessionStorage.getItem('jumila-admin-ok') === '1') renderizar();
+</script>
+
+</body>
+</html>
