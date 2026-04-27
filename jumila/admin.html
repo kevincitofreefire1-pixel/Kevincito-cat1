@@ -1046,7 +1046,7 @@ function renderTallas(){
   wrap.innerHTML='';tallasActuales.forEach(t=>{const el=document.createElement('div');el.className='tag-item';el.innerHTML=`${t}<button onclick="quitarTalla('${t}')">✕</button>`;wrap.appendChild(el);});
   wrap.appendChild(inp);
 }
-function guardarProducto(){
+async function guardarProducto(){
   const nombre=document.getElementById('f-nombre').value.trim();
   const cat=document.getElementById('f-cat').value;
   const precio=parseFloat(document.getElementById('f-precio').value);
@@ -1061,6 +1061,17 @@ function guardarProducto(){
   const prod={id:editandoId||nextId(),nombre,categoria:cat,subcategoria:document.getElementById('f-subcat').value.trim()||'',precio,precioAntes:pa,precioMayor:pm,cantidadMayor:cm,stockUnidades:st,badge:document.getElementById('f-badge').value||null,emoji:document.getElementById('f-emoji').value.trim()||'📦',bg:'#FFF0F5',imagen:document.getElementById('f-imagen').value.trim()||'',tallas:[...tallasActuales]};
   if(editandoId){const idx=arr.findIndex(p=>p.id===editandoId);if(idx>=0)arr[idx]=prod;else arr.push(prod);showToast('Producto actualizado ✅','success');}
   else{arr.push(prod);showToast('Producto agregado ✅','success');}
+  // Sincronizar con Supabase
+try {
+  await agregarProductoSupabase({
+    nombre: prod.nombre,
+    precio: prod.precio,
+    categoria: prod.categoria,
+    descripcion: prod.subcategoria || '',
+    imagen_url: prod.imagen || '',
+    stock: prod.stockUnidades || 0
+  });
+} catch(e) { console.log('Supabase sync error', e); }
   saveProductos(arr);cerrarModal();
 }
 function editarProducto(id){abrirModal(id);}
@@ -1219,5 +1230,6 @@ function eliminarResena(i){
 document.addEventListener('keydown',e=>{if(e.key==='Escape')cerrarModal();});
 document.getElementById('modalOverlay')?.addEventListener('click',e=>{if(e.target===e.currentTarget)cerrarModal();});
 </script>
+<script src="js/supabase.js"></script>
 </body>
 </html>
