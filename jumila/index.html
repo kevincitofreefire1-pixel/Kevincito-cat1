@@ -961,7 +961,24 @@ document.addEventListener('click',e=>{const b=e.target.closest('.cchk');if(b)car
 skel(8);
 updFavCount();        // ← agrega esta
 setTimeout(markFavBtns, 400);  // ← y esta
-setTimeout(()=>rProds(getP()),300);
+setTimeout(async () => {
+  try {
+    const data = await getProductos();
+    if (data && data.length) {
+      localStorage.setItem(JK, JSON.stringify(data.map(p => ({
+        id: p.id,
+        nombre: p.nombre,
+        precio: p.precio,
+        categoria: p.categoria,
+        descripcion: p.descripcion,
+        imagen: p.imagen_url,
+        stock: p.stock,
+        emoji: '📦'
+      }))));
+    }
+  } catch(e) { console.log('Supabase no disponible'); }
+  rProds(getP());
+}, 300);
 
 /* ── Carrusel ── */
 let curSlide = 0;
@@ -982,5 +999,6 @@ function changeSlide(dir) {
   goSlide((curSlide + dir + slides.length) % slides.length);
 }
 </script>
+<script src="js/supabase.js"></script>
 </body>
 </html>
