@@ -97,3 +97,18 @@ async function comprimirImagen(archivo, maxKB = 200) {
     img.src = url;
   });
 }
+
+async function eliminarImagen(url) {
+  if (!url || !url.includes('supabase')) return;
+  const nombre = url.split('/imagenes/').pop();
+  await fetch(
+    `${SUPABASE_URL}/storage/v1/object/imagenes/${nombre}`,
+    {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`
+      }
+    }
+  );
+}
