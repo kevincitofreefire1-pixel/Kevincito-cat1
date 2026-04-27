@@ -24,3 +24,17 @@ async function agregarProducto(producto) {
   });
   return await res.json();
 }
+
+async function agregarProductoSupabase(producto) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/productos`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(producto)
+  });
+  return await res.json();
+}
