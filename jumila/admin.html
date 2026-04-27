@@ -1038,7 +1038,31 @@ document.getElementById('f-imagen')?.addEventListener('input',function(){if(this
 document.getElementById('f-emoji')?.addEventListener('input',()=>actualizarEmojiPreview());
 function mostrarPreview(src){document.getElementById('imgPreview').innerHTML=`<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:8px" onerror="this.parentElement.innerHTML='<span>❌</span>'">`;}
 function actualizarEmojiPreview(){const e=document.getElementById('f-emoji')?.value||'📦';const p=document.getElementById('imgPreview');if(p)p.innerHTML=`<span id="emojiPreview" style="font-size:2rem">${e}</span>`;}
-function cargarImagenLocal(inp){const file=inp.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{document.getElementById('f-imagen').value=e.target.result;mostrarPreview(e.target.result);};r.readAsDataURL(file);}
+async function cargarImagenLocal(inp) {
+  const file = inp.files[0];
+  if (!file) return;
+
+  // Preview local inmediato
+  const r = new FileReader();
+  r.onload = e => mostrarPreview(e.target.result);
+  r.readAsDataURL(file);
+
+  // Comprimir y subir
+  showToast('Comprimiendo imagen...', 'success');
+  const fileComprimido = await comprimirImagen(file);
+  
+  showToast('Subiendo imagen...', 'success');
+  const nombre = `producto_${Date.now()}.jpg`;
+  const url = await subirImagen(fileComprimido, nombre);
+
+  if (url) {
+    document.getElementById('f-imagen').value = url;
+    mostrarPreview(url);
+    showToast('Imagen subida ✅', 'success');
+  } else {
+    showToast('Error al subir imagen', 'error');
+  }
+}
 function agregarTalla(e){if(e.key!=='Enter'&&e.key!==',')return;e.preventDefault();const v=e.target.value.trim();if(v&&!tallasActuales.includes(v)){tallasActuales.push(v);renderTallas();}e.target.value='';}
 function quitarTalla(t){tallasActuales=tallasActuales.filter(x=>x!==t);renderTallas();}
 function renderTallas(){
