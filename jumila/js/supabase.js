@@ -1,7 +1,7 @@
 const SUPABASE_URL = 'https://bxwddgmpywgtibduhrgl.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_yDGytx5M-brZ_vBsAnqhFQ_Na9yHe_V';
 
-async function getProductos() {
+async function getProductosFromSupabase() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/productos?select=*`, {
     headers: {
       'apikey': SUPABASE_KEY,
