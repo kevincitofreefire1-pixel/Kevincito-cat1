@@ -38,3 +38,22 @@ async function agregarProductoSupabase(producto) {
   });
   return await res.json();
 }
+
+async function subirImagen(archivo, nombre) {
+  const res = await fetch(
+    `${SUPABASE_URL}/storage/v1/object/imagenes/${nombre}`,
+    {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': archivo.type
+      },
+      body: archivo
+    }
+  );
+  if (res.ok) {
+    return `${SUPABASE_URL}/storage/v1/object/public/imagenes/${nombre}`;
+  }
+  return null;
+}
