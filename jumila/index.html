@@ -963,7 +963,7 @@ updFavCount();        // ← agrega esta
 setTimeout(markFavBtns, 400);  // ← y esta
 setTimeout(async () => {
   try {
-    const data = await getProductos();
+    const data = await getProductosFromSupabase();
     if (data && data.length) {
       localStorage.setItem(JK, JSON.stringify(data.map(p => ({
         id: p.id,
