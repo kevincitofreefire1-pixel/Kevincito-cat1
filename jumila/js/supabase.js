@@ -40,6 +40,9 @@ async function agregarProductoSupabase(producto) {
 }
 
 async function subirImagen(archivo, nombre) {
+  const formData = new FormData();
+  formData.append('', archivo, nombre);
+  
   const res = await fetch(
     `${SUPABASE_URL}/storage/v1/object/imagenes/${nombre}`,
     {
@@ -47,14 +50,19 @@ async function subirImagen(archivo, nombre) {
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': archivo.type
+        'x-upsert': 'true'
       },
       body: archivo
     }
   );
+  
+  const data = await res.json();
+  console.log('Storage response:', data);
+  
   if (res.ok) {
     return `${SUPABASE_URL}/storage/v1/object/public/imagenes/${nombre}`;
   }
+  console.error('Error subiendo imagen:', data);
   return null;
 }
 
