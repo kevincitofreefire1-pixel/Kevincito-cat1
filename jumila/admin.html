@@ -813,10 +813,6 @@ button{font-family:var(--f);cursor:pointer}
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Subcategoría</label>
-        <input class="form-inp" id="f-subcat" placeholder="Ej. smartphone"/>
-      </div>
-      <div class="form-group">
         <label class="form-label">Precio (S/) *</label>
         <input class="form-inp" id="f-precio" type="number" step="0.01" placeholder="0.00"/>
       </div>
@@ -844,16 +840,6 @@ button{font-family:var(--f);cursor:pointer}
           <option value="sale">🔥 Oferta</option>
           <option value="hot">⭐ Popular</option>
         </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Emoji del producto</label>
-        <input class="form-inp" id="f-emoji" placeholder="📦" maxlength="4" oninput="actualizarEmojiPreview()"/>
-      </div>
-      <div class="form-group full">
-        <label class="form-label">Tallas / Variantes <span style="color:var(--light);font-weight:400;text-transform:none;letter-spacing:0">(Enter o coma para agregar)</span></label>
-        <div class="tallas-wrap" id="tallasWrap">
-          <input id="tallasInp" placeholder="XS, S, M, L..." onkeydown="agregarTalla(event)"/>
-        </div>
       </div>
       <div class="form-group full">
         <label class="form-label">Imagen del producto</label>
