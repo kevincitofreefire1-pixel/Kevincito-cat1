@@ -11,21 +11,7 @@ async function getProductosFromSupabase() {
   return await res.json();
 }
 
-async function agregarProducto(producto) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/productos`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    },
-    body: JSON.stringify(producto)
-  });
-  return await res.json();
-}
-
-async function agregarProductoSupabase(producto) {
+async function agregarProductoSupabase(producto) {  // ✅ quitado el { ... }
   const res = await fetch(`${SUPABASE_URL}/rest/v1/productos`, {
     method: 'POST',
     headers: {
@@ -40,9 +26,6 @@ async function agregarProductoSupabase(producto) {
 }
 
 async function subirImagen(archivo, nombre) {
-  const formData = new FormData();
-  formData.append('', archivo, nombre);
-  
   const res = await fetch(
     `${SUPABASE_URL}/storage/v1/object/imagenes/${nombre}`,
     {
@@ -55,10 +38,8 @@ async function subirImagen(archivo, nombre) {
       body: archivo
     }
   );
-  
   const data = await res.json();
   console.log('Storage response:', data);
-  
   if (res.ok) {
     return `${SUPABASE_URL}/storage/v1/object/public/imagenes/${nombre}`;
   }
@@ -85,7 +66,7 @@ async function comprimirImagen(archivo, maxKB = 200) {
       const tryCompress = () => {
         canvas.toBlob(blob => {
           if (blob.size / 1024 <= maxKB || quality <= 0.1) {
-            resolve(new File([blob], archivo.name, { type: 'image/jpeg' }));
+            resolve(new File([blob], archivo.name, { type: 'image/jpeg' })); // ✅ corregido
           } else {
             quality -= 0.1;
             tryCompress();
