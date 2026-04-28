@@ -966,14 +966,18 @@ setTimeout(async () => {
     const data = await getProductosFromSupabase();
     if (data && data.length) {
       localStorage.setItem(JK, JSON.stringify(data.map(p => ({
-        id: p.id,
+        id: p.id_local || p.id,
         nombre: p.nombre,
         precio: p.precio,
         categoria: p.categoria,
-        descripcion: p.descripcion,
-        imagen: p.imagen_url,
-        stock: p.stock,
-        emoji: '📦'
+        subcategoria: p.descripcion || '',
+        imagen: p.imagen_url || '',
+        stockUnidades: p.stock,
+        emoji: '📦',
+        badge: null,
+        tallas: [],
+        precioAntes: null,
+        bg: '#FFF0F5'
       }))));
     }
   } catch(e) { console.log('Supabase no disponible'); }
