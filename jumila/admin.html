@@ -1087,23 +1087,89 @@ async function guardarProducto(){
   else{arr.push(prod);showToast('Producto agregado ✅','success');}
  // Sincronizar con Supabase
 try {
-  await agregarProductoSupabase({
-    nombre: prod.nombre,
-    precio: prod.precio,
-    categoria: prod.categoria,
-    descripcion: prod.subcategoria || '',
-    imagen_url: prod.imagen || '',
-    stock: prod.stockUnidades || 0
-  });
-} catch(e) { console.log('Supabase sync error', e); }
+  if(editandoId){
+    await fetch(`${SUPABASE_URL}/rest/v1/productos?id_local=eq.${prod.id}`,{
+      method:'PATCH',
+      headers:{
+        'apikey':SUPABASE_KEY,
+        'Authorization':`Bearer ${SUPABASE_KEY}`,
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify({
+        nombre:prod.nombre, precio:prod.precio, categoria:prod.categoria,
+        descripcion:prod.subcategoria||'', imagen_url:prod.imagen||'',
+        stock:prod.stockUnidades||0
+      })
+    });
+  } else {
+    await agregarProductoSupabase({
+  nombre:prod.nombre, precio:prod.precio, categoria:prod.categoria,
+  descripcion:prod.subcategoria||'', imagen_url:prod.imagen||'',
+  stock:prod.stockUnidades||0,
+  id_local:prod.id
+});
+  }
+} catch(e){ console.log('Supabase sync error',e); }
 
 saveProductos(arr);
 cerrarModal();
+}
+
+/* ── EDITAR / ELIMINAR PRODUCTO ── */
+function editarProducto(id){
+  goPage('productos',document.querySelectorAll('.sb-item')[1]);
+  abrirModal(id);
+}
+function eliminarProducto(id){
+  if(!confirm('¿Eliminar este producto?'))return;
+  const p=getProductos().find(x=>x.id===id);
+  if(p&&p.imagen)eliminarImagen(p.imagen);
+  eliminarProductoSupabase(id);
+  saveProductos(getProductos().filter(x=>x.id!==id));
+  showToast('Producto eliminado','error');
+}
+function eliminarDesdeModal(){
+  if(!editandoId)return;
+  if(!confirm('¿Eliminar este producto?'))return;
+  const p=getProductos().find(x=>x.id===editandoId);
+  if(p&&p.imagen)eliminarImagen(p.imagen);
+  eliminarProductoSupabase(editandoId);
+  saveProductos(getProductos().filter(x=>x.id!==editandoId));
+  cerrarModal();
+  showToast('Producto eliminado','success');
+}
+
+/* ── CONFIG ── */
+function cfgTab(btn,id){
+  document.querySelectorAll('.cfg-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function cargarConfig(){
+  const lim=localStorage.getItem('jumila_stock_limite')||5;
+  const ofin=localStorage.getItem('jumila_oferta_fin')||'';
+  const cfg=JSON.parse(localStorage.getItem('jumila_config')||'{}');
+  document.getElementById('cfg-stock-limite').value=lim;
   if(ofin)document.getElementById('cfg-oferta-fin').value=ofin.slice(0,16);
   if(cfg.whatsapp)document.getElementById('cfg-whatsapp').value=cfg.whatsapp;
   if(cfg.horario)document.getElementById('cfg-horario').value=cfg.horario;
   if(cfg.maps)document.getElementById('cfg-maps').value=cfg.maps;
   if(cfg.anuncio)document.getElementById('cfg-anuncio').value=cfg.anuncio;
+}
+function guardarConfigCompleta(){
+  const v=parseInt(document.getElementById('cfg-stock-limite').value)||5;
+  localStorage.setItem('jumila_stock_limite',v);
+  const fin=document.getElementById('cfg-oferta-fin').value;
+  if(fin)localStorage.setItem('jumila_oferta_fin',new Date(fin).toISOString());
+  else localStorage.removeItem('jumila_oferta_fin');
+  const cfg={
+    whatsapp:document.getElementById('cfg-whatsapp').value.trim(),
+    horario:document.getElementById('cfg-horario').value.trim(),
+    maps:document.getElementById('cfg-maps').value.trim(),
+    anuncio:document.getElementById('cfg-anuncio').value.trim()
+  };
+  localStorage.setItem('jumila_config',JSON.stringify(cfg));
+  actualizarStats();
+  showToast('Configuración guardada ✅','success');
 }
 function guardarConfig(){
   const v=parseInt(document.getElementById('cfg-stock-limite').value)||5;
