@@ -11,7 +11,7 @@ async function getProductosFromSupabase() {
   return await res.json();
 }
 
-async function agregarProductoSupabase(producto) {  // ✅ quitado el { ... }
+async function agregarProductoSupabase(producto) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/productos`, {
     method: 'POST',
     headers: {
@@ -23,6 +23,29 @@ async function agregarProductoSupabase(producto) {  // ✅ quitado el { ... }
     body: JSON.stringify(producto)
   });
   return await res.json();
+}
+
+async function actualizarProductoSupabase(idLocal, producto) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/productos?id_local=eq.${idLocal}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(producto)
+  });
+  return await res.json();
+}
+
+async function eliminarProductoSupabase(idLocal) {
+  await fetch(`${SUPABASE_URL}/rest/v1/productos?id_local=eq.${idLocal}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`
+    }
+  });
 }
 
 async function subirImagen(archivo, nombre) {
@@ -39,7 +62,6 @@ async function subirImagen(archivo, nombre) {
     }
   );
   const data = await res.json();
-  console.log('Storage response:', data);
   if (res.ok) {
     return `${SUPABASE_URL}/storage/v1/object/public/imagenes/${nombre}`;
   }
@@ -66,7 +88,7 @@ async function comprimirImagen(archivo, maxKB = 200) {
       const tryCompress = () => {
         canvas.toBlob(blob => {
           if (blob.size / 1024 <= maxKB || quality <= 0.1) {
-            resolve(new File([blob], archivo.name, { type: 'image/jpeg' })); // ✅ corregido
+            resolve(new File([blob], archivo.name, { type: 'image/jpeg' }));
           } else {
             quality -= 0.1;
             tryCompress();
