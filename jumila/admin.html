@@ -1085,7 +1085,7 @@ async function guardarProducto(){
   const prod={id:editandoId||nextId(),nombre,categoria:cat,subcategoria:document.getElementById('f-subcat').value.trim()||'',precio,precioAntes:pa,precioMayor:pm,cantidadMayor:cm,stockUnidades:st,badge:document.getElementById('f-badge').value||null,emoji:document.getElementById('f-emoji').value.trim()||'📦',bg:'#FFF0F5',imagen:document.getElementById('f-imagen').value.trim()||'',tallas:[...tallasActuales]};
   if(editandoId){const idx=arr.findIndex(p=>p.id===editandoId);if(idx>=0)arr[idx]=prod;else arr.push(prod);showToast('Producto actualizado ✅','success');}
   else{arr.push(prod);showToast('Producto agregado ✅','success');}
-  // Sincronizar con Supabase
+ // Sincronizar con Supabase
 try {
   await agregarProductoSupabase({
     nombre: prod.nombre,
@@ -1096,18 +1096,9 @@ try {
     stock: prod.stockUnidades || 0
   });
 } catch(e) { console.log('Supabase sync error', e); }
-  saveProductos(arr);cerrarModal();
-}
-function editarProducto(id){abrirModal(id);}
-function eliminarProducto(id){if(!confirm('¿Eliminar este producto?'))return;saveProductos(getProductos().filter(p=>p.id!==id));showToast('Producto eliminado','error');}
-function eliminarDesdeModal(){if(!editandoId)return;if(!confirm('¿Eliminar este producto?'))return;saveProductos(getProductos().filter(p=>p.id!==editandoId));cerrarModal();showToast('Producto eliminado','error');}
 
-/* ── CONFIG ── */
-function cargarConfig(){
-  const lim=localStorage.getItem('jumila_stock_limite')||5;
-  const ofin=localStorage.getItem('jumila_oferta_fin')||'';
-  const cfg=JSON.parse(localStorage.getItem('jumila_config')||'{}');
-  document.getElementById('cfg-stock-limite').value=lim;
+saveProductos(arr);
+cerrarModal();
   if(ofin)document.getElementById('cfg-oferta-fin').value=ofin.slice(0,16);
   if(cfg.whatsapp)document.getElementById('cfg-whatsapp').value=cfg.whatsapp;
   if(cfg.horario)document.getElementById('cfg-horario').value=cfg.horario;
